@@ -1,0 +1,30 @@
+# Use Python slim as base image
+# Bookworm is codename for Debian 12
+# Slim is a minimal image that only contains the necessary packages to run the application
+FROM python:3.13.4-slim-bookworm
+
+# Create and set the working directory
+WORKDIR /app
+
+# Update the Debian package catalog 
+RUN apt-get update
+
+# Copy the requirements file
+COPY requirements.txt .
+
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Keep container running for development
+CMD ["tail", "-f", "/dev/null"]
