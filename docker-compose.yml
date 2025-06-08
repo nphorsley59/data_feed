@@ -1,0 +1,22 @@
+services:
+  data_feed:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app  # Mount current directory for live code updates
+      - /app/__pycache__  # Exclude Python cache
+      - /app/.git  # Exclude git directory
+      - poetry-cache:/root/.cache/pypoetry  # Cache Poetry dependencies
+    environment:
+      - PYTHONPATH=/app
+      - DEBUG=1
+      - COMPOSE_BAKE=true
+      - POETRY_VIRTUALENVS_CREATE=false  # Don't create virtualenvs in container
+    ports:
+      - "8000:8000"  # Adjust port if needed
+    stdin_open: true  # Keep STDIN open
+    tty: true # Allocate a pseudo-TTY
+
+volumes:
+  poetry-cache:  # Named volume for Poetry cache

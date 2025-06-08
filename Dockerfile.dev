@@ -6,14 +6,23 @@ FROM python:3.13.4-slim-bookworm
 # Create and set the working directory
 WORKDIR /app
 
-# Update the Debian package catalog 
-RUN apt-get update
+# Update the Debian package catalog and install curl
+RUN apt-get update && apt-get install -y curl
 
-# Copy the requirements file
-COPY requirements.txt .
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Add Poetry to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Copy poetry configuration files
+COPY pyproject.toml poetry.lock* ./
+
+# Configure Poetry
+RUN poetry config virtualenvs.create false
+
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi
 
 # Copy the application code
 COPY . .
@@ -26,5 +35,5 @@ USER appuser
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Keep container running for development
-CMD ["tail", "-f", "/dev/null"]
+# Default to bash for interactive development
+CMD ["/bin/bash"]
