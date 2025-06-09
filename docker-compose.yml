@@ -7,7 +7,7 @@ services:
       - .:/app  # Mount current directory for live code updates
       - /app/__pycache__  # Exclude Python cache
       - /app/.git  # Exclude git directory
-      - poetry-cache:/root/.cache/pypoetry  # Cache Poetry dependencies
+      - poetry_cache:/root/.cache/pypoetry  # Cache Poetry dependencies
     environment:
       - PYTHONPATH=/app
       - DEBUG=1
@@ -19,4 +19,4 @@ services:
     tty: true # Allocate a pseudo-TTY
 
 volumes:
-  poetry-cache:  # Named volume for Poetry cache
+  poetry_cache:  # Named volume for Poetry cache

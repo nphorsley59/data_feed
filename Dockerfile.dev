@@ -12,8 +12,17 @@ RUN apt-get update && apt-get install -y curl
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Add Poetry to PATH
+# Add Poetry to PATH for root
 ENV PATH="/root/.local/bin:$PATH"
+
+# Create a non-root user
+RUN useradd -m appuser
+
+# Install Poetry for appuser
+RUN su - appuser -c "curl -sSL https://install.python-poetry.org | python3 -"
+
+# Add Poetry to PATH for appuser
+ENV PATH="/home/appuser/.local/bin:$PATH"
 
 # Copy poetry configuration files
 COPY pyproject.toml poetry.lock* ./
@@ -21,14 +30,16 @@ COPY pyproject.toml poetry.lock* ./
 # Configure Poetry
 RUN poetry config virtualenvs.create false
 
-# Install dependencies
-RUN poetry install --no-interaction --no-ansi
-
 # Copy the application code
 COPY . .
 
-# Create a non-root user
-RUN useradd -m appuser && chown -R appuser:appuser /app
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi
+
+# Set ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
 USER appuser
 
 # Set environment variables
