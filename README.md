@@ -17,11 +17,13 @@ PMC is a free, full-text archive of biomedical and life sciences journals. It is
 Docker is used to manage the development environment and to emulate services.
 
 To connect to your Docker development server:
-    1. Start the container in detached mode with `docker compose up -d <service_name>`
-    2. Enter the container with `docker compose exec <service_name> bash`
+
+1. Start the container in detached mode with `docker compose up -d <service_name>`
+2. Enter the container with `docker compose exec <service_name> bash`
 
 If you suspect a build is outdated:
-    1. Rebuild the container with `docker compose build --no-cache <service_name>`
+
+1. Rebuild the container with `docker compose build --no-cache <service_name>`
 
 ## Poetry
 
