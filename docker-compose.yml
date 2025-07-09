@@ -1,10 +1,10 @@
 services:
   data_feed:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: .  # Path context for the Dockerfile
+      dockerfile: Dockerfile.dev  # Path to the Dockerfile
     volumes:
-      - .:/app  # Mount current directory for live code updates
+      - .:/app  # Mount current directory as 'app/' for live code updates
       - /app/__pycache__  # Exclude Python cache
       - /app/.git  # Exclude git directory
       - poetry_cache:/root/.cache/pypoetry  # Cache Poetry dependencies
