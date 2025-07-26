@@ -23,19 +23,27 @@ def send_request(
     if path_params:
         url = url.format(**path_params)
     try:
-        logger.info(f"Sending request to {url}")
-        response = requests.get(url, params=query_params)
+        logger.debug(f"Sending request to {url}")
+        response = requests.get(url, params=query_params, timeout=10)
         success = is_success_status_code(response.status_code)
         if success:
-            logger.info("SUCCESS: Request returned status code "
+            logger.debug("SUCCESS: Request returned status code "
                         f"{response.status_code}")
             return response
         logger.error(f"ERROR: Request returned status code "
                      f"{response.status_code}")
         return None
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"Connection error when fetching data from {url}: {e}")
+        return None
+    except requests.exceptions.Timeout as e:
+        logger.error(f"Timeout error when fetching data from {url}: {e}")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request exception when fetching data from {url}: {e}")
+        return None
     except Exception as e:
-        logger.error("Unexpected exception when fetching data from "
-                     f"{response.url}: {e}")
+        logger.error(f"Unexpected exception when fetching data from {url}: {e}")
         return None
 
 
@@ -46,7 +54,7 @@ def parse_response(
     if response is None:
         logger.warning("Nothing to parse")
         return None
-    logger.info(f"Parsing response with format {format}")
+    logger.debug(f"Parsing response with format {format}")
     match format:
         case "json":
             if "application/json" not in response.headers.get("Content-Type", ""):

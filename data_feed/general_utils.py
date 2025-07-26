@@ -15,3 +15,21 @@ def build_search_string(keywords: List[str] | str, oa: bool = True) -> str:
 
 def format_number_with_commas(number: int) -> str:
     return f"{number:,}"
+
+
+def safe_dict_key_to_value(d: dict, key: str):
+    try:
+        return d[key]
+    except KeyError:
+        return None
+
+
+def safe_list_index_to_value(l: list, index: int):
+    try:
+        return l[index]
+    except IndexError:
+        return None
+
+
+def text_to_header(text: str) -> str:
+    return f"---====| {text} |====---"

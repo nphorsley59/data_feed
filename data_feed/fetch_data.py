@@ -12,13 +12,12 @@ logger = get_logger()
 
 
 OA_FILE_LIST_URL = "https://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_file_list.txt"
-BIOC_FILE_LIST_URL = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json_file_list"
 PMC_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 PMC_SUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
 PMC_BIOC_URL = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_{format}/{id}/{encoding}"
 
 
-def download_oa_subset_list():
+def fetch_oa_subset_list():
     oa_list_fpath = os.path.join(
         Directory.CACHE.value, 
         "oa_file_list.txt",
@@ -38,27 +37,7 @@ def download_oa_subset_list():
     return data
 
 
-def download_bioc_subset_list():
-    bioc_list_fpath = os.path.join(
-        Directory.CACHE.value, 
-        "bioc_file_list.txt",
-    )
-    if os.path.exists(bioc_list_fpath):
-        logger.info(f"Bioc file list already exists in cache")
-        with open(bioc_list_fpath, "r") as f:
-            data = f.readlines()
-        return data
-    logger.info(f"Downloading master list of BioC articles")
-    response = send_request(url=BI)
-    data = parse_response(response=response, format="text")
-    logger.info(f"Received {format_number_with_commas(len(data))} Bioc records")
-    with open(bioc_list_fpath, "w") as f:
-        f.write("\n".join(data))
-    logger.info(f"BioC file list saved to cache")
-    return data
-
-
-def extract_pmc_ids(lines):
+def extract_oa_pmc_ids(lines):
     pmc_ids = set()
     for line in lines:
         line = line.strip()
@@ -105,16 +84,16 @@ def get_id_metadata_from_pmc(id: str) -> tuple[str, dict]:
         "id": id,
         "retmode": response_format,
     }
-    logger.info(f"Fetching metadata for {id} from PMC")
-    logger.info(f"Requesting response in {response_format} format")
+    logger.debug(f"Fetching metadata for {id} from PMC")
+    logger.debug(f"Requesting response in {response_format} format")
     response = send_request(url=PMC_SUMMARY_URL, query_params=query_params)
     data = parse_response(response=response, format=response_format)
-    logger.info(f"Metadata received for {id}")
+    logger.debug(f"Metadata received for {id}")
     metadata = data["result"][id]
     for aid in metadata["articleids"]:
         if aid.get("idtype") == "pmcid":
             pmc_id = aid.get("value")
-    logger.info(f"{pmc_id} found in {id} metadata")
+    logger.debug(f"{pmc_id} found in {id} metadata")
     return pmc_id, metadata
 
 
@@ -126,6 +105,33 @@ def get_article_from_bioc(id: str):
         "id": id,
         "encoding": response_encoding,
     }
+    logger.debug(f"Fetching article for {id} from BioC")
+    logger.debug(f"Requesting response in {response_format} format")
     response = send_request(url=PMC_BIOC_URL, path_params=path_params)
     data = parse_response(response=response, format=response_format)
+    if data is not None:
+        logger.info(f"Article received for {id}")
+    else:
+        logger.info(f"No article received for {id}")
     return data
+
+
+# BIOC_FILE_LIST_URL = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json_file_list"
+# def download_bioc_subset_list():
+#     bioc_list_fpath = os.path.join(
+#         Directory.CACHE.value, 
+#         "bioc_file_list.txt",
+#     )
+#     if os.path.exists(bioc_list_fpath):
+#         logger.info(f"Bioc file list already exists in cache")
+#         with open(bioc_list_fpath, "r") as f:
+#             data = f.readlines()
+#         return data
+#     logger.info(f"Downloading master list of BioC articles")
+#     response = send_request(url=BI)
+#     data = parse_response(response=response, format="text")
+#     logger.info(f"Received {format_number_with_commas(len(data))} Bioc records")
+#     with open(bioc_list_fpath, "w") as f:
+#         f.write("\n".join(data))
+#     logger.info(f"BioC file list saved to cache")
+#     return data
